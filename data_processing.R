@@ -3,11 +3,14 @@ library(lubridate)
 library(dplyr)
 library(wq)
 library(ggplot2)
+
 source('T:/AgWQM/DataAnalysis/Hood River/HRTempTrends/fun_tempHelpers.R')
+
+options(stringsAsFactors = FALSE)
 
 setwd("T:/TMDL_ER/Hood_River/Temperature_trend_analysis")
 
-files <- list.files()
+files <- list.files(pattern = "xlsx")
 
 files <- files[!grepl('~',files)]
 files <- files[!grepl('docx',files)]
@@ -66,22 +69,38 @@ for (i in 1:length(files)) {
   
   tmp.data <- merge(tmp.data, site_codes, by = 'SITE')
   
-  sdadm <- Calculate.sdadm(df = tmp.data, 
-                           result_column_name = 'TEMP', 
-                           station_column_name = 'SITE', 
+  sdadm <- Calculate.sdadm(df = tmp.data,
+                           result_column_name = 'TEMP',
+                           station_column_name = 'SITE',
                            datetime_column_name = 'DATETIME',
                            datetime_format = "%Y-%m-%d %H:%M:%S")
-  results <- temp_sufficiency_analysis(df.all = tmp.data, sdadm = sdadm)
-  results_pass <- results[results$result == 'pass',]
   
-  setwd("T:/AgWQM/DataAnalysis/Hood River")
-  for (k in 1:nrow(results_pass)) {
-    png(file = paste(as.character(site_codes[i,'SITE']), "_", 
-                     results_pass[k, "month"], "_plot.png", sep = ""),
-        width = 11, height = 8.5, units = "in", res = 100)
-    Temp_trends_plot(tmp.data, sdadm, results_pass$month[k])
-    dev.off()
-  }  
+  sdadm <- merge(sdadm, site_codes, by = 'SITE', all.x = TRUE)
+  # results <- temp_sufficiency_analysis(df.all = tmp.data, sdadm = sdadm)
+  # results_pass <- results[results$result == 'pass',]
+  # if (i == 1) {
+  #   results_all <- results
+  # } else {
+  #   results_all <- rbind(results_all, results)
+  # }
+  # 
+  # if (nrow(results_pass) > 0) {
+  #    setwd("T:/AgWQM/DataAnalysis/Hood River")
+  # for (k in 1:nrow(results_pass)) {
+  #   png(file = paste(as.character(site_codes[i,'SITE']), "_",
+  #                    results_pass[k, "month"], "_plot.png", sep = ""),
+  #       width = 11, height = 8.5, units = "in", res = 100)
+  #   Temp_trends_plot(tmp.data, sdadm, results_pass$month[k])
+  #   dev.off()
+  # }
+  # }
+  
+ ev <- EvaluateTempWQS(sdadm_df = sdadm, station_column_name = "SITE")
+ if (i == 1) {
+   ev_all <- attr(ev, "result_summary")
+ } else {
+   ev_all <- rbind(ev_all, attr(ev, "result_summary"))
+ }
 }
 
 

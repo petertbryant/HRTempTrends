@@ -104,14 +104,14 @@ Calculate.sdadm <- function(df, result_column_name, station_column_name, datetim
     sdadm.melt <- melt.data.frame(sdadm, id.var="date",variable_name = "id")
     colnames(sdadm.melt)[3] <- "sdadm"
     sdadm.melt$id <- gsub("X","",sdadm.melt$id,fixed=TRUE)
-    sdadm.melt$id <- gsub(".","-",sdadm.melt$id,fixed=TRUE)
+    #sdadm.melt$id <- gsub(".","-",sdadm.melt$id,fixed=TRUE)
     colnames(sdadm.melt)[2] <- station_column_name
     sdadm.melt$date <- as.Date(sdadm.melt$date)
     return(sdadm.melt)
   }
 }
 
-EvaluateTempWQS <- function(sdadm_df, selectUse, selectSpawning, station_column_name) {
+EvaluateTempWQS <- function(sdadm_df, station_column_name) {
   # Description:
   # Evaluates temperature seven day average daily max values against Oregon's Water Quality Standards for Temperature
   #
@@ -154,8 +154,8 @@ EvaluateTempWQS <- function(sdadm_df, selectUse, selectSpawning, station_column_
   #sdadm_df$ben_use_des <- ifelse(sdadm$id %in% c(36837,36838, 36839, 36874),"Core Cold Water Habitat",ifelse(sdadm$id %in% c(36849,36850,36854,36857),"Salmon and Trout Rearing and Migration","Redband and Lanhontan Cutthroat Trout"))
   
   ## Build the spawning reference data frame based on the spawning dates and benefiicial use specified
-  sdadm_df$spwn_dates <- selectSpawning
-  sdadm_df$ben_use_des <- selectUse
+  #sdadm_df$spwn_dates <- selectSpawning
+  #sdadm_df$ben_use_des <- selectUse
   stations <- unique(sdadm_df[,station_column_name])
   spd <- unique(sdadm_df[,c('SITE','spwn_dates','ben_use_des')])
   spd_list <- strsplit(spd$spwn_dates, split = "-")
@@ -228,14 +228,14 @@ EvaluateTempWQS <- function(sdadm_df, selectUse, selectSpawning, station_column_
   #                       list(sdadm_df[, station_column_name],
   #                            sdadm_df$exceedspawn), length)
   #sdadm_df <- sdadm_df[!is.na(sdadm_df$sdadm),]
-  
+  sdadm_df$year <- years(sdadm_df$date)
   sdadm_df$Time_Period <- ifelse(sdadm_df$summer, "Summer", "Spawning")
-  sdadm_df$Time_Period <- factor(sdadm_df$Time_Period, levels = c('Summer', 'Spawning', 'Total'))
+  sdadm_df$Time_Period <- factor(sdadm_df$Time_Period, levels = c('Summer', 'Spawning'))
   sdadm_df$exceed <- sdadm_df$exceedspawn | sdadm_df$exceedsummer
   sdadm_df_noNA <- sdadm_df[!is.na(sdadm_df$sdadm),]
   sdadm_df_noNA[is.na(sdadm_df_noNA$Time_Period), 'exceed'] <- FALSE
   sdadm_df_noNA[is.na(sdadm_df_noNA$Time_Period), 'Time_Period'] <- 'Summer'
-  result_summary <- ddply(sdadm_df_noNA, .(sdadm_df_noNA[, station_column_name], Time_Period), 
+  result_summary <- ddply(sdadm_df_noNA, .(sdadm_df_noNA[, station_column_name], year, Time_Period), 
                           summarise, 
                           Exceedances = sum(exceed),                  
                           #exceedspawn = sum(exceedspawn),
@@ -437,7 +437,8 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
   sig <- ""
   
   p1_btm <- 8#floor(range(sdadm$sdadm, na.rm = TRUE))[1]
-  p1_top <- 20#ceiling(range(sdadm$sdadm, na.rm = TRUE))[2]
+  p1_top <- ifelse(ceiling(range(sdadm$sdadm, na.rm = TRUE))[2] < 20, 20, 
+                   ceiling(range(sdadm$sdadm, na.rm = TRUE))[2])
   p2_btm <- floor(range(dh_sum$dh, na.rm = TRUE))[1]
   p2_top <- ceiling(range(dh_sum$dh, na.rm = TRUE))[2]
   
