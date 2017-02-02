@@ -267,44 +267,64 @@ EvaluateTempWQS <- function(sdadm_df, station_column_name) {
   return(sdadm_df)
 }
 
-temp_sufficiency_analysis <- function(df.all, sdadm) {
-  stns <- unique(df.all$SITE)
+temp_sufficiency_analysis <- function(df.all = NULL, sdadm) {
+  if (is.null(df.all)) {
+    stns <- unique(sdadm$SITE)
+  } else {
+    stns <- unique(df.all$SITE)
+  }
   qc.results.1 <- NULL
   qc.results.2 <- NULL
   qc.results.3 <- NULL
   for (i in 1:length(stns)) {
-    tmp <- df.all[df.all$SITE == stns[i], ]
-    
-    tmp$date <- as.POSIXct(strptime(tmp$DATETIME, format = "%Y-%m-%d %H:%M:%OS"))
-    tmp$month <- month(tmp$date)
-    tmp$year <- year(tmp$date)
-    tmp$day <- day(tmp$date)
-    tmp$hour <- hour(tmp$date)
-    
-    # subset to data to the months of interest
-    #tmp <- tmp[tmp$month %in% c(6,7,8,9,10),]
-    
-    # QC Test #1 -------------------------------------------------------------
-    # Must be at least one observation in a minimum of 22 hours during the day
-    
-    # First determine number of hours collected within each day
-    qc.hr <- as.tbl(tmp) %>%
-      group_by(SITE, month, year, day) %>%
-      summarise(n = length(unique(hour)))
-    qc.hr <- as.data.frame(qc.hr)
-    
-    # Isolate to days with 22 or more hours represented
-    qc.hr$n_threshold <- '>= 22 hours'
-    qc.hr$result <- ifelse(qc.hr$n >= 22,'pass','fail')
-    
-    qc.results.1 <- rbind(qc.results.1,qc.hr)
-    
-    qc.hr.p <- qc.hr[qc.hr$result == 'pass',]
-    qc.hr.p$code <- paste(qc.hr.p$SITE, qc.hr.p$year, qc.hr.p$month, qc.hr.p$day)
-    tmp$code <- paste(tmp$SITE, tmp$year, tmp$month, tmp$day)
-    
-    # subset to just days that pass QC test #1
-    tmp <- tmp[tmp$code %in% qc.hr.p$code,]
+    if (!is.null(df.all)) {
+      tmp <- df.all[df.all$SITE == stns[i], ]
+      
+      tmp$date <- as.POSIXct(strptime(tmp$DATETIME, format = "%Y-%m-%d %H:%M:%OS"))
+      tmp$month <- month(tmp$date)
+      tmp$year <- year(tmp$date)
+      tmp$day <- day(tmp$date)
+      tmp$hour <- hour(tmp$date)
+      
+      # subset to data to the months of interest
+      #tmp <- tmp[tmp$month %in% c(6,7,8,9,10),]
+      
+      # QC Test #1 -------------------------------------------------------------
+      # Must be at least one observation in a minimum of 22 hours during the day
+      
+      # First determine number of hours collected within each day
+      qc.hr <- as.tbl(tmp) %>%
+        group_by(SITE, month, year, day) %>%
+        summarise(n = length(unique(hour)))
+      qc.hr <- as.data.frame(qc.hr)
+      
+      # Isolate to days with 22 or more hours represented
+      qc.hr$n_threshold <- '>= 22 hours'
+      qc.hr$result <- ifelse(qc.hr$n >= 22,'pass','fail')
+      
+      qc.results.1 <- rbind(qc.results.1,qc.hr)
+      
+      qc.hr.p <- qc.hr[qc.hr$result == 'pass',]
+      qc.hr.p$code <- paste(qc.hr.p$SITE, qc.hr.p$year, qc.hr.p$month, qc.hr.p$day)
+      tmp$code <- paste(tmp$SITE, tmp$year, tmp$month, tmp$day)
+      
+      # subset to just days that pass QC test #1
+      tmp <- tmp[tmp$code %in% qc.hr.p$code,]
+    } else {
+      qc.hr <- data.frame(result = 'pass')
+      tmp <- sdadm[!is.na(sdadm$sdadm),]
+      qc.hr.p <- sdadm[!is.na(sdadm$sdadm),]
+      
+      tmp$date <- as.POSIXct(strptime(tmp$date, format = "%Y-%m-%d"))
+      tmp$month <- month(tmp$date)
+      tmp$year <- year(tmp$date)
+      tmp$day <- day(tmp$date)
+
+      qc.hr.p$date <- as.POSIXct(strptime(qc.hr.p$date, format = "%Y-%m-%d"))
+      qc.hr.p$month <- month(qc.hr.p$date)
+      qc.hr.p$year <- year(qc.hr.p$date)
+      qc.hr.p$day <- day(qc.hr.p$date)
+    }
     
     if (any(qc.hr$result == 'pass')) {
       # QC Test #2 -------------------------------------------------------------
@@ -337,8 +357,8 @@ temp_sufficiency_analysis <- function(df.all, sdadm) {
       
       qc.dy.p <- qc.dy[qc.dy$result == 'pass',]
       qc.dy.p$code <- paste(qc.dy.p$SITE, qc.dy.p$year, qc.dy.p$month)
-      tmp$code <- paste(tmp$SITE, tmp$year, tmp$hour)
-      
+      tmp$code <- paste(tmp$SITE, tmp$year, tmp$month)
+
       # subset to just months that pass QC test #2
       tmp <- tmp[tmp$code %in% qc.dy.p$code,]
       
@@ -379,13 +399,17 @@ temp_sufficiency_analysis <- function(df.all, sdadm) {
 Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
   sdadm$year <- year(sdadm$date)
   sdadm$month <- month(sdadm$date)
-  sdadm$ZDADM <- unique(tmp.data$ZDADM)
-  tmp.data$year <- year(tmp.data$DATETIME)
-  tmp.data$month <- month(tmp.data$DATETIME)
-  tmp.data$day <- day(tmp.data$DATETIME)
-  tmp.data$hour <- hour(tmp.data$DATETIME)
   
-  tmp.data <- tmp.data[tmp.data$month == selectMonth,]
+  if (!is.null(tmp.data)) {
+    tmp.data$year <- year(tmp.data$DATETIME)
+    tmp.data$month <- month(tmp.data$DATETIME)
+    tmp.data$day <- day(tmp.data$DATETIME)
+    tmp.data$hour <- hour(tmp.data$DATETIME)
+    
+    tmp.data <- tmp.data[tmp.data$month == selectMonth,]
+    sdadm$ZDADM <- unique(tmp.data$ZDADM)
+  } 
+ 
   sdadm <- sdadm[sdadm$month == selectMonth,]
   
   #### Average monthly sdadm ####
@@ -398,35 +422,40 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
   tmean <- mannKen(ts(amean))
   if(is.na(tmean$p.value)) tmean$p.value <- 0
   
-  #### Average monthly daily cumulative degree hours > WQS ####
-  #First take the maximum from each hour of data
-  dh <- as.tbl(tmp.data) %>%
-    group_by(SITE, ZDADM, year, day, hour) %>%
-    summarise(Result = max(TEMP))
-  
-  #Build id for efficient grouping
-  dh$code <- paste(dh$SITE, dh$year, dh$day)
-  
-  #Calculate degree difference for each hourly max
-  dh$dd <- as.numeric(dh$Result) - as.numeric(dh$ZDADM)
-  
-  #Set all negative values to 0
-  dh$dd <- ifelse(dh$dd < 0, 0, dh$dd)
-  
-  #Sum the positive degree differences to derive cumulative degree hours > WQS
-  dh_sum <- dh %>% 
-    group_by(SITE, ZDADM, year, code) %>% 
-    summarise(dh = sum(dd))
-  
-  #Derive the monthly average of daily degree hours > WQS
-  dh_avg <- dh_sum %>%
-    group_by(SITE, ZDADM, year) %>%
-    summarise(dh_avg = mean(dh))
-  
-  #Calculate trend on average daily degree hours > WQS
-  dha_wide <- cast(dh_avg, year ~ SITE, value = "dh_avg")
-  tdha <- mannKen(ts(dha_wide[-1]))
-  if(is.na(tdha$p.value)) tdha$p.value <- 0
+  if (!is.null(tmp.data)) {
+    #### Average monthly daily cumulative degree hours > WQS ####
+    #First take the maximum from each hour of data
+    dh <- as.tbl(tmp.data) %>%
+      group_by(SITE, ZDADM, year, day, hour) %>%
+      summarise(Result = max(TEMP))
+    
+    #Build id for efficient grouping
+    dh$code <- paste(dh$SITE, dh$year, dh$day)
+    
+    #Calculate degree difference for each hourly max
+    dh$dd <- as.numeric(dh$Result) - as.numeric(dh$ZDADM)
+    
+    #Set all negative values to 0
+    dh$dd <- ifelse(dh$dd < 0, 0, dh$dd)
+    
+    #Sum the positive degree differences to derive cumulative degree hours > WQS
+    dh_sum <- dh %>% 
+      group_by(SITE, ZDADM, year, code) %>% 
+      summarise(dh = sum(dd))
+    
+    #Derive the monthly average of daily degree hours > WQS
+    dh_avg <- dh_sum %>%
+      group_by(SITE, ZDADM, year) %>%
+      summarise(dh_avg = mean(dh))
+    
+    #Calculate trend on average daily degree hours > WQS
+    dha_wide <- cast(dh_avg, year ~ SITE, value = "dh_avg")
+    tdha <- mannKen(ts(dha_wide[-1]))
+    if(is.na(tdha$p.value)) tdha$p.value <- 0
+    
+    p2_btm <- floor(range(dh_sum$dh, na.rm = TRUE))[1]
+    p2_top <- ceiling(range(dh_sum$dh, na.rm = TRUE))[2]
+  }
   
   a <- NULL
   b <- NULL
@@ -439,9 +468,7 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
   p1_btm <- 8#floor(range(sdadm$sdadm, na.rm = TRUE))[1]
   p1_top <- ifelse(ceiling(range(sdadm$sdadm, na.rm = TRUE))[2] < 20, 20, 
                    ceiling(range(sdadm$sdadm, na.rm = TRUE))[2])
-  p2_btm <- floor(range(dh_sum$dh, na.rm = TRUE))[1]
-  p2_top <- ceiling(range(dh_sum$dh, na.rm = TRUE))[2]
-  
+
   #Boxplots of 7DADM
   df <- sdadm
   df <- df[!is.na(df$sdadm),]
@@ -510,6 +537,7 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
                                                        "< 0.1)")), "")), 
                     size = 3.5)
   
+  if (!is.null(tmp.data)) {
   #Boxplots of daily degree hours > WQS
   df <- dh_sum
   df$year <- factor(df$year, levels = min(df$year):max(df$year))
@@ -564,14 +592,24 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
                                                 ifelse(p2 < 0.05, "< 0.05)", 
                                                        "< 0.1)")), "")), 
                     size = 3.5)
+  }
+  
   
   title_stn <- unique(sdadm$SITE)
   
-  mp <- multiplot(a, c, b, d, cols = 2, title = paste(title_stn,
-                                                      selectMonth,
-                                                      sep = " - "))
+  return(list(a, b, c, d))
   
-  return(mp)
+  # if (is.null(c) | is.null(d)) {
+  #   mp <- multiplot(a, b, cols = 2, title = paste(title_stn,
+  #                                                       selectMonth,
+  #                                                       sep = " - "))
+  # } else {
+  #     mp <- multiplot(a, c, b, d, cols = 2, title = paste(title_stn,
+  #                                                     selectMonth,
+  #                                                     sep = " - "))
+  # }
+  # 
+  # return(mp)
 }
 
 # Multiple plot function
