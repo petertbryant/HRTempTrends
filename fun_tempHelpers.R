@@ -400,6 +400,20 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
   sdadm$year <- year(sdadm$date)
   sdadm$month <- month(sdadm$date)
   
+  print_month <- switch(as.character(selectMonth), 
+                        "1" = "January",
+                        "2" = "February",
+                        "3" = "March",
+                        "4" = "April",
+                        "5" = "May",
+                        "6" = "June", 
+                        "7" = "July", 
+                        "8" = "August",
+                        "9" = "September",
+                        "10" = "October",
+                        "11" = "November",
+                        "12" = "December")
+  
   if (!is.null(tmp.data)) {
     tmp.data$year <- year(tmp.data$DATETIME)
     tmp.data$month <- month(tmp.data$DATETIME)
@@ -485,7 +499,8 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
                        lim = c(p1_btm,p1_top)) +
     scale_x_discrete(drop = FALSE) +
     ylab("Temperature (degrees C)") +
-    ggtitle("7 Day Average Daily Maximum Temperature") +
+    ggtitle(paste("7 Day Average Daily Maximum Temperature at", 
+            unique(tmp.data$SITE), "in", print_month)) +
     geom_abline(intercept = zdadm_stn, slope = 0, colour = "red", size = 1.01) + 
     annotate("text", label = "Water Quality Standard", 
              x = ifelse(min(df$TEMP) > 14, 7.5, 3.5), 
@@ -509,7 +524,8 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
                        labels = seq(min(df$year),max(df$year),by=1),
                        lim = c(min(df$year),max(df$year))) +
     xlab("Year") + 
-    ggtitle("Average 7 Day Average Daily Maximum Temperature") +
+    ggtitle(paste("Average 7 Day Average Daily Maximum Temperature at", 
+                  unique(tmp.data$SITE), "in", print_month)) +
     ylab("Temperature (degrees C)") +
     guides(size = FALSE) +
     theme_bw() +
@@ -551,7 +567,8 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
                        labels = c(seq(p2_btm,p2_top,by=5)),
                        lim = c(p2_btm,p2_top)) +
     scale_x_discrete(drop = FALSE) +
-    ggtitle("Daily Degree Hours Above Water Quality Standard") +
+    ggtitle(paste("Daily Degree Hours Above Water Quality Standard at", 
+                  unique(tmp.data$SITE), "in", print_month)) +
     ylab("Daily degree hours (degrees C)")
   
   
@@ -565,7 +582,8 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
                        labels = seq(min(df$year),max(df$year),by=1),
                        lim = c(min(df$year),max(df$year))) +
     xlab("Year") + 
-    ggtitle("Average Daily Degree Hours Above Water Quality Standard") +
+    ggtitle(paste("Average Daily Degree Hours Above Water Quality Standard at", 
+                  unique(tmp.data$SITE), "in", print_month)) +
     ylab("Daily degree hours (degrees C)") +
     guides(size = FALSE) +
     theme_bw() +

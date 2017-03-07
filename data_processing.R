@@ -18,9 +18,23 @@ files <- list.files(pattern = "xlsx")
 files <- files[!grepl('~',files)]
 files <- files[!grepl('docx',files)]
 
-site_codes <- data.frame(SITE = c('ENLC0.1', 'NLC2.3', 'NLC0.1', 
-                                  'WNLC2.0', 'WNLC1.7', 'WNLC0.1',
-                                  'WNLC5.5', 'WNLC7.5'), 
+print_names <- c('ENLC0.1 - Efork Neal Mouth HRWG houry', 
+  'NLC2.3 - Neal FirMt HRWG hourly',
+  'NLC0.1 - Neal Mouth HWRG CTWSR', 
+  'WNLC2.0 - WFork_Neal_abv_Eastside_lateral_HRWG_hourly', 
+  'WNLC1.7 - WFork_Neal_blw_Eastside_lateral_HRWG_hourly', 
+  'WNLC0.1 - WFork_Neal_mouth_HRWG_hourly',
+  'WNLC5.5 - WFork_Neal_RM5.5_HRWG_hourly', 
+  'WNLC7.5 - WFork_Neal_USFSboundary_USFS')
+
+site_codes <- data.frame(SITE = c('ENLC0.1', 
+                                  'NLC2.3',
+                                  'NLC0.1', 
+                                  'WNLC2.0', 
+                                  'WNLC1.7', 
+                                  'WNLC0.1',
+                                  'WNLC5.5', 
+                                  'WNLC7.5'), 
                          spwn_dates = c("October 15-May 15", "October 15-May 15",
                                         "October 15-May 15", "January 1-May 15",
                                         "October 15-May 15", "October 15-May 15",
@@ -58,8 +72,13 @@ for (i in 1:length(files)) {
       # mydata$DATE <- unlist(lapply(split_date, function(x){x[[1]]}))
       # mydata$TIME <- unlist(lapply(split_date, function(x){x[[2]]}))
     } else {
-      mydata$TIME <- unlist(lapply(strsplit(as.character(mydata$TIME), " "), function(x)x[[2]]))
-      mydata$DATETIME <- as.POSIXct(paste(mydata$DATE, mydata$TIME))
+      if (as.character(unique(mydata$TIME)) == '1899-12-30') {
+        mydata$DATETIME <- mydata$DATE
+      } else {
+        mydata$TIME <- unlist(lapply(strsplit(as.character(mydata$TIME), " "), function(x)x[[2]]))
+        mydata$DATETIME <- as.POSIXct(paste(mydata$DATE, mydata$TIME))
+      }
+
     }
     mydata <- mydata[,c('DATETIME','TEMP')]
     if (j == 1) {
@@ -90,17 +109,22 @@ for (i in 1:length(files)) {
   if (nrow(results_pass) > 0) {
      setwd("T:/AgWQM/DataAnalysis/Hood River")
   for (k in 1:nrow(results_pass)) {
-    # png(file = paste(as.character(site_codes[i,'SITE']), "_",
-    #                  results_pass[k, "month"], "_plot.png", sep = ""),
-    #     width = 11, height = 8.5, units = "in", res = 100)
+
     lstPlots <- Temp_trends_plot(tmp.data, sdadm, results_pass$month[k])
-    for (jj in letters[1:length(lstPlots)]) {
+    for (jj in 1:length(lstPlots)) {
       png(file = paste(as.character(site_codes[i,'SITE']), "_",
-                      results_pass[k, "month"], "_plot_", jj, ".png", sep = ""),
+                      results_pass[k, "month"], "_plot_", letters[1:length(lstPlots)][jj], ".png", sep = ""),
                       width = 11, height = 8.5, units = "in", res = 100)
-                       dev.off()
+      print(lstPlots[[jj]])
+      dev.off()
     }
-    # dev.off()
+    png(file = paste(as.character(site_codes[i,'SITE']), "_",
+                     results_pass[k, "month"], "_plot.png", sep = ""),
+        width = 11, height = 8.5, units = "in", res = 100)
+    mp <- multiplot(lstPlots[[1]], lstPlots[[3]], lstPlots[[2]], lstPlots[[4]], cols = 2, title = paste(unique(tmp.data$SITE),
+                                                                                                        results_pass$month[k],
+                                                                                                        sep = " - "))
+    dev.off()
   }
   }
   
