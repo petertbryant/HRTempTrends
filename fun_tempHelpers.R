@@ -491,21 +491,21 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
   a <- ggplot(data = df, aes(x=year, y=sdadm)) + 
     geom_boxplot() + 
     theme_bw() + 
-    theme(axis.title = element_text(size = 8),
-          plot.title = element_text(size = 8, face = "bold")) +
+    theme(axis.title = element_text(size = 14),
+          plot.title = element_text(size = 12, face = "bold"),
+          axis.text.x = element_text(angle = 45, hjust = 1)) +
     xlab("Year") + 
     scale_y_continuous(breaks = seq(p1_btm, p1_top, by = 2),
                        labels = seq(p1_btm, p1_top, by = 2),
                        lim = c(p1_btm,p1_top)) +
     scale_x_discrete(drop = FALSE) +
     ylab("Temperature (degrees C)") +
-    ggtitle(paste("7 Day Average Daily Maximum Temperature at", 
-            unique(tmp.data$SITE), "in", print_month)) +
+    ggtitle(paste("7 Day Average Daily Maximum Temperature")) +#at", #unique(tmp.data$SITE), "in", print_month)) 
     geom_abline(intercept = zdadm_stn, slope = 0, colour = "red", size = 1.01) + 
-    annotate("text", label = "Water Quality Standard", 
-             x = ifelse(min(df$TEMP) > 14, 7.5, 3.5), 
-             y = ifelse(zdadm_stn > max(df$TEMP), 
-                        zdadm_stn - 0.3, zdadm_stn + 0.3),
+    annotate("text", label = "Water Quality Criterion", 
+             x = 14,#ifelse(min(df$sdadm) > 14, 7.5, 3.5), 
+             y = ifelse(zdadm_stn > max(df$sdadm), 
+                        zdadm_stn - 0.5, zdadm_stn + 0.5),
              colour = "red", size = 3.5)
   
   
@@ -524,13 +524,14 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
                        labels = seq(min(df$year),max(df$year),by=1),
                        lim = c(min(df$year),max(df$year))) +
     xlab("Year") + 
-    ggtitle(paste("Average 7 Day Average Daily Maximum Temperature at", 
-                  unique(tmp.data$SITE), "in", print_month)) +
+    ggtitle(paste("Average 7 Day Average Daily Maximum Temperature"))+# at", 
+                  #unique(tmp.data$SITE), "in", print_month)) +
     ylab("Temperature (degrees C)") +
     guides(size = FALSE) +
     theme_bw() +
-    theme(axis.title = element_text(size = 8),
-          plot.title = element_text(size = 8, face = "bold")) 
+    theme(axis.title = element_text(size = 14),
+          plot.title = element_text(size = 12, face = "bold"),
+          axis.text.x = element_text(angle = 45, hjust = 1)) 
   
   if (tmean$p.value < 0.1) {
     sig <- "_sig"
@@ -545,7 +546,7 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
                           linetype = 2, size = 1.05)      
   }
   
-  b <- b + annotate("text", x = min(df$year) + 3, y = p1_top - 0.5, 
+  b <- b + annotate("text", x = min(df$year) + 6, y = p1_top - 0.5, 
                     label = ifelse(is.null(p1), "No Trend", 
                                    ifelse(p1 < 0.1, 
                                           paste("Significant Trend (p-value",
@@ -560,15 +561,16 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
   c <- ggplot(data = df, aes(x=year, y=dh)) + 
     geom_boxplot() + 
     theme_bw() + 
-    theme(axis.title = element_text(size = 8),
-          plot.title = element_text(size = 8, face = "bold")) +
+    theme(axis.title = element_text(size = 14),
+          plot.title = element_text(size = 12, face = "bold"),
+          axis.text.x = element_text(angle = 45, hjust = 1)) +
     xlab("Year") + 
     scale_y_continuous(breaks = c(seq(p2_btm,p2_top,by=5)),
                        labels = c(seq(p2_btm,p2_top,by=5)),
                        lim = c(p2_btm,p2_top)) +
     scale_x_discrete(drop = FALSE) +
-    ggtitle(paste("Daily Degree Hours Above Water Quality Standard at", 
-                  unique(tmp.data$SITE), "in", print_month)) +
+    ggtitle(paste("Daily Degree Hours Above Water Quality Criterion"))+#at", 
+                  #unique(tmp.data$SITE), "in", print_month)) +
     ylab("Daily degree hours (degrees C)")
   
   
@@ -582,13 +584,14 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
                        labels = seq(min(df$year),max(df$year),by=1),
                        lim = c(min(df$year),max(df$year))) +
     xlab("Year") + 
-    ggtitle(paste("Average Daily Degree Hours Above Water Quality Standard at", 
-                  unique(tmp.data$SITE), "in", print_month)) +
+    ggtitle(paste("Average Daily Degree Hours Above Water Quality Criterion"))+#at", 
+                  #unique(tmp.data$SITE), "in", print_month)) +
     ylab("Daily degree hours (degrees C)") +
     guides(size = FALSE) +
     theme_bw() +
-    theme(axis.title = element_text(size = 8),
-          plot.title = element_text(size = 8, face = "bold")) 
+    theme(axis.title = element_text(size = 14),
+          plot.title = element_text(size = 12, face = "bold"),
+          axis.text.x = element_text(angle = 45, hjust = 1)) 
   
   if (tdha$p.value < 0.1) {
     sig = "_sig"
@@ -603,7 +606,7 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
                           linetype = 2, size = 1.01)
   }
   
-  d <- d + annotate("text", x = min(df$year) + 3, y = ifelse(p2_top == 1, p2_top, p2_top - 1.5), 
+  d <- d + annotate("text", x = min(df$year) + 6, y = ifelse(p2_top == 1, p2_top, p2_top - 1.5), 
                     label = ifelse(is.null(p2), "No trend", 
                                    ifelse(p2 < 0.1, 
                                           paste("Significant Trend (p-value", 

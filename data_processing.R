@@ -119,11 +119,11 @@ for (i in 1:length(files)) {
       dev.off()
     }
     png(file = paste(as.character(site_codes[i,'SITE']), "_",
-                     results_pass[k, "month"], "_plot.png", sep = ""),
+                     results_pass[k, "month"], "_plot_revised_03152017.png", sep = ""),
         width = 11, height = 8.5, units = "in", res = 100)
-    mp <- multiplot(lstPlots[[1]], lstPlots[[3]], lstPlots[[2]], lstPlots[[4]], cols = 2, title = paste(unique(tmp.data$SITE),
-                                                                                                        results_pass$month[k],
-                                                                                                        sep = " - "))
+    mp <- multiplot(lstPlots[[1]], lstPlots[[3]], lstPlots[[2]], lstPlots[[4]], cols = 2) #, title = paste(unique(tmp.data$SITE),
+                                                                                           #             results_pass$month[k],
+                                                                                            #            sep = " - "))
     dev.off()
   }
   }
