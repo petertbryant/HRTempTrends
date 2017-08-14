@@ -578,8 +578,8 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
   d <- ggplot(data = df, aes(x = year, y = dh_avg)) + 
     geom_point(aes(size = 1.01)) +
     scale_y_continuous(breaks = seq(p2_btm,p2_top, by = 5),
-                       labels = seq(p2_btm,p2_top, by = 5),
-                       lim = c(p2_btm,p2_top)) +
+                       labels = seq(p2_btm,p2_top, by = 5))+
+                       #lim = c(p2_btm,p2_top)) + #commented this out because it was not plotting the trend line when SK.min was a negative value. 
     scale_x_continuous(breaks = seq(min(df$year),max(df$year),by=1),
                        labels = seq(min(df$year),max(df$year),by=1),
                        lim = c(min(df$year),max(df$year))) +

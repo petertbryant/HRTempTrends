@@ -40,7 +40,8 @@ site_codes <- data.frame(SITE = c('ENLC0.1',
                                         "October 15-May 15", "October 15-May 15",
                                         "January 1-May 15", "January 1-May 15")
                          )
-site_codes$ben_use_des <- 'Salmon and Trout Rearing and Migration'
+#site_codes$ben_use_des <- 'Salmon and Trout Rearing and Migration'
+site_codes$ben_use_des <- 'Core Cold Water Habitat'
 site_codes$ZDADM <- suppressMessages(plyr::revalue(site_codes$ben_use_des, c(
   'Bull Trout Spawning and Juvenile Rearing' = 12,
   'Core Cold Water Habitat' = 16,
@@ -119,7 +120,7 @@ for (i in 1:length(files)) {
       dev.off()
     }
     png(file = paste(as.character(site_codes[i,'SITE']), "_",
-                     results_pass[k, "month"], "_plot_revised_03152017.png", sep = ""),
+                     results_pass[k, "month"], "_plot_revised_08142017.png", sep = ""),
         width = 11, height = 8.5, units = "in", res = 100)
     mp <- multiplot(lstPlots[[1]], lstPlots[[3]], lstPlots[[2]], lstPlots[[4]], cols = 2) #, title = paste(unique(tmp.data$SITE),
                                                                                            #             results_pass$month[k],
