@@ -503,9 +503,11 @@ Temp_trends_plot <- function(tmp.data, sdadm, selectMonth) {
     ggtitle(paste("7 Day Average Daily Maximum Temperature")) +#at", #unique(tmp.data$SITE), "in", print_month)) 
     geom_abline(intercept = zdadm_stn, slope = 0, colour = "red", size = 1.01) + 
     annotate("text", label = "Water Quality Criterion", 
-             x = 14,#ifelse(min(df$sdadm) > 14, 7.5, 3.5), 
-             y = ifelse(zdadm_stn > max(df$sdadm), 
-                        zdadm_stn - 0.5, zdadm_stn + 0.5),
+             x = 4,
+             #x = 14,#ifelse(min(df$sdadm) > 14, 7.5, 3.5), 
+             y = zdadm_stn - 0.5, #ifelse(max(df$sdadm) > zdadm_stn, (p1_top), zdadm_stn + 1),
+             # y = ifelse(zdadm_stn > max(df$sdadm, na.rm = TRUE), 
+             #            zdadm_stn - 0.5, zdadm_stn + 0.5), 
              colour = "red", size = 3.5)
   
   
